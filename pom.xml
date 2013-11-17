@@ -8,12 +8,37 @@
     <packaging>jar</packaging>
 
     <name>Salted Hash Jaas LoginModule</name>
-
+    <description>JAAS LoginModule for checking login with salted hashes</description>  
+    <inceptionYear>2013</inceptionYear>
+    
+    <!--
+    <licenses>
+        <license>
+            <name>The Apache Software License, Version 2.0</name>
+            <url>http://www.apache.org/licenses/LICENSE-2.0.txt</url>
+            <distribution>repo</distribution>
+        </license>
+    </licenses>
+    -->
+    
+    <developers>
+        <developer>
+            <name>Georg Henkel</name>
+            <organization>develman.de</organization>
+            <organizationUrl>http://ww.develman.de</organizationUrl>
+        </developer>
+    </developers>
+     
+    <scm>
+        <connection>scm:git:git@github.com:Develman/saltedhash-jaas-module.git</connection>
+        <url>scm:git:git@github.com:Develman/saltedhash-jaas-module.git</url>
+        <developerConnection>scm:git:git@github.com:Develman/saltedhash-jaas-module.git</developerConnection>
+    </scm>
+    
     <properties>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
     </properties>
-
-        
+    
     <build>
         <plugins>
             <plugin>
@@ -33,7 +58,12 @@
                     <finalName>saltedhash-jaas-module</finalName>                   
                 </configuration>
             </plugin>
- 
+
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-release-plugin</artifactId>
+                <version>2.4.2</version>
+            </plugin>
         </plugins>
     </build>
 
