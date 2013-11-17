@@ -1,6 +1,8 @@
 SaltedHash JAAS LoginModule
 ======================
 
+[![Build Status](https://travis-ci.org/Develman/saltedhash-jaas-module.png?branch=master)](https://travis-ci.org/Develman/saltedhash-jaas-module)
+
 JAAS LoginModule for checking login with salted hashes
 
 
