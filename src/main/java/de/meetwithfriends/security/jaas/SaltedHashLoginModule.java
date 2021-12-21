@@ -5,22 +5,25 @@ import de.meetwithfriends.security.jaas.principal.UserPrincipal;
 import de.meetwithfriends.security.jdbc.AuthenticationDao;
 import de.meetwithfriends.security.jdbc.JdbcAuthenticationService;
 import de.meetwithfriends.security.jdbc.data.ConfigurationData;
+import de.meetwithfriends.security.util.StringUtil;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 import java.io.IOException;
 import java.security.Principal;
 import java.text.MessageFormat;
 import java.util.List;
 import java.util.Map;
+import java.util.Random;
 import javax.security.auth.Subject;
 import javax.security.auth.callback.*;
 import javax.security.auth.login.FailedLoginException;
 import javax.security.auth.login.LoginException;
 import javax.security.auth.spi.LoginModule;
-import org.apache.log4j.LogManager;
-import org.apache.log4j.Logger;
 
 public class SaltedHashLoginModule implements LoginModule
 {
-    private static final Logger LOG = LogManager.getLogger(SaltedHashLoginModule.class);
+    private static final Logger LOG = LoggerFactory.getLogger(SaltedHashLoginModule.class);
 
     private Subject subject;
     private CallbackHandler callbackHandler;
@@ -36,6 +39,18 @@ public class SaltedHashLoginModule implements LoginModule
 
     private boolean succeeded = false;
     private boolean commitSucceeded = false;
+
+    public static void main(String[] args) throws Exception {
+        if (null == args || args.length == 0 || args[0].length() == 0) {
+            LOG.error("need a password arg");
+            throw new IllegalArgumentException("Need a password arg");
+        }
+
+        String salt = StringUtil.getRandomHexString(args.length > 1 ? Integer.parseInt(args[1]) : 32);
+        String password = JdbcAuthenticationService.getSaltedPasswordDigest(args[0], salt, "SHA-256");
+        System.out.println(" Password -> " + password);
+        System.out.println(" Salt -> " + salt);
+    }
 
     @Override
     public void initialize(Subject subject, CallbackHandler callbackHandler,

@@ -2,15 +2,16 @@ package de.meetwithfriends.security.jdbc;
 
 import de.meetwithfriends.security.jdbc.data.UserData;
 import de.meetwithfriends.security.util.StringUtil;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
 import javax.security.auth.login.LoginException;
-import org.apache.log4j.LogManager;
-import org.apache.log4j.Logger;
 
 public class JdbcAuthenticationService
 {
-    private static final Logger LOG = LogManager.getLogger(JdbcAuthenticationService.class);
+    private final Logger log = LoggerFactory.getLogger(JdbcAuthenticationService.class);
 
     private String mdAlgorithm = "SHA-256";
     private AuthenticationDao authenticationDao;
@@ -31,7 +32,7 @@ public class JdbcAuthenticationService
     {
         if (debug)
         {
-            LOG.debug("Trying to authenticate user: " + username);
+            log.debug("Trying to authenticate user: " + username);
         }
 
         boolean authenticated = false;
@@ -41,7 +42,7 @@ public class JdbcAuthenticationService
         {
             if (debug)
             {
-                LOG.debug("Salt and password loaded from database");
+                log.debug("Salt and password loaded from database");
             }
 
             authenticated = checkPasswordMatching(password, result);
@@ -56,19 +57,12 @@ public class JdbcAuthenticationService
 
         try
         {
-            String saltedPassword = password + userData.getSalt();
-
-            MessageDigest md = MessageDigest.getInstance(mdAlgorithm);
-            md.update(saltedPassword.getBytes());
-
-            byte byteData[] = md.digest();
-
-            String userPassword = StringUtil.convertToHex(byteData);
+            String userPassword = getSaltedPasswordDigest(password, userData.getSalt(), mdAlgorithm);
             if (userPassword.equalsIgnoreCase(userData.getPassword()))
             {
                 if (debug)
                 {
-                    LOG.debug("Passwords are equal, user authenticated");
+                    log.debug("Passwords are equal, user authenticated");
                 }
 
                 matching = true;
@@ -77,10 +71,22 @@ public class JdbcAuthenticationService
         }
         catch (NoSuchAlgorithmException ex)
         {
-            LOG.error(mdAlgorithm + " not available, unable to check passwords", ex);
+            log.error(mdAlgorithm + " not available, unable to check passwords", ex);
         }
 
         return matching;
+    }
+
+    public static String getSaltedPasswordDigest(String password, String salt, String mdAlgorithm) throws NoSuchAlgorithmException {
+        String saltedPassword = password + salt;
+
+        MessageDigest md = MessageDigest.getInstance(mdAlgorithm);
+        md.update(saltedPassword.getBytes());
+
+        byte byteData[] = md.digest();
+
+        String userPassword = StringUtil.convertToHex(byteData);
+        return userPassword;
     }
 
 }
