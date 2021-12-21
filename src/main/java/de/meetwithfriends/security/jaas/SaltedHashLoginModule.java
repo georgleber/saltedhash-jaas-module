@@ -10,11 +10,11 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
+import java.lang.reflect.Constructor;
 import java.security.Principal;
 import java.text.MessageFormat;
 import java.util.List;
 import java.util.Map;
-import java.util.Random;
 import javax.security.auth.Subject;
 import javax.security.auth.callback.*;
 import javax.security.auth.login.FailedLoginException;
@@ -24,6 +24,7 @@ import javax.security.auth.spi.LoginModule;
 public class SaltedHashLoginModule implements LoginModule
 {
     private static final Logger LOG = LoggerFactory.getLogger(SaltedHashLoginModule.class);
+    private static final String ROLE_PRINCIPAL_CLASS_OPTION = "role-principal-class";
 
     private Subject subject;
     private CallbackHandler callbackHandler;
@@ -39,6 +40,7 @@ public class SaltedHashLoginModule implements LoginModule
 
     private boolean succeeded = false;
     private boolean commitSucceeded = false;
+    private String rolePrincipalClass;
 
     public static void main(String[] args) throws Exception {
         if (null == args || args.length == 0 || args[0].length() == 0) {
@@ -53,12 +55,12 @@ public class SaltedHashLoginModule implements LoginModule
     }
 
     @Override
-    public void initialize(Subject subject, CallbackHandler callbackHandler,
-            Map<String, ?> sharedState, Map<String, ?> options)
+    public void initialize(Subject subject, CallbackHandler callbackHandler, Map<String, ?> sharedState, Map<String, ?> options)
     {
         this.subject = subject;
         this.callbackHandler = callbackHandler;
         this.options = options;
+        this.rolePrincipalClass = (String) options.get(ROLE_PRINCIPAL_CLASS_OPTION);
 
         initDebugging();
         initAuthenticationDao();
@@ -117,7 +119,7 @@ public class SaltedHashLoginModule implements LoginModule
         List<String> roles = authenticationDao.loadRoles(username);
         for (String role : roles)
         {
-            RolePrincipal rolePrincipal = new RolePrincipal(role);
+            Principal rolePrincipal = createRole(role);
             addNonExistentPrincipal(rolePrincipal);
         }
 
@@ -125,6 +127,20 @@ public class SaltedHashLoginModule implements LoginModule
         commitSucceeded = true;
 
         return true;
+    }
+
+    private Principal createRole(String roleName) {
+        if (rolePrincipalClass != null && rolePrincipalClass.length() > 0) {
+            try {
+                Class<? extends Principal> clazz = (Class<? extends Principal>) Class.forName(rolePrincipalClass);
+                Constructor<? extends Principal> clazzDeclaredConstructor = clazz.getDeclaredConstructor(String.class);
+                return clazzDeclaredConstructor.newInstance(roleName);
+            } catch (Exception e) {
+                LOG.warn("Unable to create instance of class {}, error is {}", rolePrincipalClass, e.getMessage());
+            }
+        }
+
+        return new RolePrincipal(roleName);
     }
 
     @Override
