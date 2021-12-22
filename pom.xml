@@ -84,6 +84,7 @@
                 </executions>
                 <configuration>
                     <mainClass>de.meetwithfriends.security.jaas.SaltedHashLoginModule</mainClass>
+                    <classpathScope>test</classpathScope>
                 </configuration>
             </plugin>
 
@@ -101,6 +102,7 @@
             <groupId>ch.qos.logback</groupId>
             <artifactId>logback-classic</artifactId>
             <version>1.2.8</version>
+            <scope>provided</scope>
         </dependency>
         <dependency>
             <groupId>com.h2database</groupId>
