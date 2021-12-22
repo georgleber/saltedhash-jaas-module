@@ -36,7 +36,7 @@ Following list shows all configuration parameters:
 ```
 create table users (id bigint primary key, username varchar(255), salt varchar(255), password varchar(255));
 create table roles (id bigint primary key, name varchar(255));
-create table roles_users (role_id bigint, user_id bigint, constraint roles_users_role_id foreign key (role_id) references roles (id), constraint roles_users_user_id foreign key (user_id) references roles (id));
+create table roles_users (role_id bigint, user_id bigint, constraint roles_users_role_id foreign key (role_id) references roles (id), constraint roles_users_user_id foreign key (user_id) references users (id));
 
 insert into users values (0, 'hawkeye', '8117ec859d0cf945fa9b28075f590707', '13e96bc7ade230967057dd138198dbd02491a8f6871f09b97c351b31a35b5878');
 insert into roles values (0, 'mohican');
