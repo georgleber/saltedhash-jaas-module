@@ -3,6 +3,7 @@ package de.meetwithfriends.security.jaas;
 import de.meetwithfriends.security.jaas.principal.UserPrincipal;
 import java.net.URL;
 import java.net.URLDecoder;
+import java.nio.charset.StandardCharsets;
 import java.security.Principal;
 import java.sql.*;
 import java.util.Set;
@@ -19,7 +20,7 @@ public class Sha256LoginModuleTest
     public void setUp() throws Exception
     {
         URL url = Thread.currentThread().getContextClassLoader().getResource("jaas.config");
-        String p = URLDecoder.decode(url.toExternalForm(), "UTF - 8");
+        String p = URLDecoder.decode(url.toExternalForm(), StandardCharsets.UTF_8.name());
 
         System.setProperty("java.security.auth.login.config", p);
 

@@ -2,15 +2,16 @@ package de.meetwithfriends.security.jdbc;
 
 import de.meetwithfriends.security.jdbc.data.ConfigurationData;
 import de.meetwithfriends.security.jdbc.data.UserData;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 import java.sql.*;
 import java.util.ArrayList;
 import java.util.List;
-import org.apache.log4j.LogManager;
-import org.apache.log4j.Logger;
 
 public class AuthenticationDao
 {
-    private static final Logger LOG = LogManager.getLogger(AuthenticationDao.class);
+    private final Logger log = LoggerFactory.getLogger(AuthenticationDao.class);
 
     private ConfigurationData configurationData;
 
@@ -45,7 +46,7 @@ public class AuthenticationDao
         }
         catch (SQLException e)
         {
-            LOG.error("Error when loading user from the database", e);
+            log.error("Error when loading user from the database", e);
         }
         finally
         {
@@ -75,7 +76,7 @@ public class AuthenticationDao
         }
         catch (SQLException e)
         {
-            LOG.error("Error when loading user from the database ", e);
+            log.error("Error when loading user from the database ", e);
         }
         finally
         {
@@ -98,7 +99,7 @@ public class AuthenticationDao
         }
         catch (ClassNotFoundException | InstantiationException | IllegalAccessException ex)
         {
-            LOG.error("Error when creating database connection", ex);
+            log.error("Error when creating database connection", ex);
             throw new RuntimeException("Error when creating database connection: " + ex.getMessage());
         }
 
@@ -116,7 +117,7 @@ public class AuthenticationDao
         }
         catch (Exception ex)
         {
-            LOG.warn("Error closing resource", ex);
+            log.warn("Error closing resource", ex);
         }
     }
 

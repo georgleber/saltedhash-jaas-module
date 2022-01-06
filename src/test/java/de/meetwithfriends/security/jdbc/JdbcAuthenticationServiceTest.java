@@ -39,7 +39,7 @@ public class JdbcAuthenticationServiceTest
 
     private void initStubs()
     {
-        Mockito.when(authenticationDao.loadUserData(Matchers.anyString())).thenAnswer(new Answer<UserData>()
+        Mockito.when(authenticationDao.loadUserData(ArgumentMatchers.anyString())).thenAnswer(new Answer<UserData>()
         {
 
             @Override

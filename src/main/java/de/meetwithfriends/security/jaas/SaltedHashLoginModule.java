@@ -5,7 +5,12 @@ import de.meetwithfriends.security.jaas.principal.UserPrincipal;
 import de.meetwithfriends.security.jdbc.AuthenticationDao;
 import de.meetwithfriends.security.jdbc.JdbcAuthenticationService;
 import de.meetwithfriends.security.jdbc.data.ConfigurationData;
+import de.meetwithfriends.security.util.StringUtil;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 import java.io.IOException;
+import java.lang.reflect.Constructor;
 import java.security.Principal;
 import java.text.MessageFormat;
 import java.util.List;
@@ -15,12 +20,11 @@ import javax.security.auth.callback.*;
 import javax.security.auth.login.FailedLoginException;
 import javax.security.auth.login.LoginException;
 import javax.security.auth.spi.LoginModule;
-import org.apache.log4j.LogManager;
-import org.apache.log4j.Logger;
 
 public class SaltedHashLoginModule implements LoginModule
 {
-    private static final Logger LOG = LogManager.getLogger(SaltedHashLoginModule.class);
+    private static final Logger LOG = LoggerFactory.getLogger(SaltedHashLoginModule.class);
+    private static final String ROLE_PRINCIPAL_CLASS_OPTION = "role-principal-class";
 
     private Subject subject;
     private CallbackHandler callbackHandler;
@@ -36,14 +40,27 @@ public class SaltedHashLoginModule implements LoginModule
 
     private boolean succeeded = false;
     private boolean commitSucceeded = false;
+    private String rolePrincipalClass;
+
+    public static void main(String[] args) throws Exception {
+        if (null == args || args.length == 0 || args[0].length() == 0) {
+            LOG.error("need a password arg");
+            throw new IllegalArgumentException("Need a password arg");
+        }
+
+        String salt = StringUtil.getRandomHexString(args.length > 1 ? Integer.parseInt(args[1]) : 32);
+        String password = JdbcAuthenticationService.getSaltedPasswordDigest(args[0], salt, "SHA-256");
+        System.out.println(" Password -> " + password);
+        System.out.println(" Salt -> " + salt);
+    }
 
     @Override
-    public void initialize(Subject subject, CallbackHandler callbackHandler,
-            Map<String, ?> sharedState, Map<String, ?> options)
+    public void initialize(Subject subject, CallbackHandler callbackHandler, Map<String, ?> sharedState, Map<String, ?> options)
     {
         this.subject = subject;
         this.callbackHandler = callbackHandler;
         this.options = options;
+        this.rolePrincipalClass = (String) options.get(ROLE_PRINCIPAL_CLASS_OPTION);
 
         initDebugging();
         initAuthenticationDao();
@@ -102,7 +119,7 @@ public class SaltedHashLoginModule implements LoginModule
         List<String> roles = authenticationDao.loadRoles(username);
         for (String role : roles)
         {
-            RolePrincipal rolePrincipal = new RolePrincipal(role);
+            Principal rolePrincipal = createRole(role);
             addNonExistentPrincipal(rolePrincipal);
         }
 
@@ -110,6 +127,20 @@ public class SaltedHashLoginModule implements LoginModule
         commitSucceeded = true;
 
         return true;
+    }
+
+    private Principal createRole(String roleName) {
+        if (rolePrincipalClass != null && rolePrincipalClass.length() > 0) {
+            try {
+                Class<? extends Principal> clazz = (Class<? extends Principal>) Class.forName(rolePrincipalClass);
+                Constructor<? extends Principal> clazzDeclaredConstructor = clazz.getDeclaredConstructor(String.class);
+                return clazzDeclaredConstructor.newInstance(roleName);
+            } catch (Exception e) {
+                LOG.warn("Unable to create instance of class {}, error is {}", rolePrincipalClass, e.getMessage());
+            }
+        }
+
+        return new RolePrincipal(roleName);
     }
 
     @Override

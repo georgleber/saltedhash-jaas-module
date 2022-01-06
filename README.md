@@ -31,3 +31,9 @@ Following list shows all configuration parameters:
 * userQuery - SQL query for loading user related data from database (first column is used as salt, second column as password)
 * roleQuery - SQL query for loading the associated roles of the authenticated user
 * debug - activate / deactivate debugging information (optional: default is false) 
+
+
+#### Running from maven 
+```
+mvn exec:java  -Dexec.args=MyVoiceIsMyPassword
+```
